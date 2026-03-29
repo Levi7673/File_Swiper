@@ -237,15 +237,7 @@ class _FileCardState extends State<FileCard> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(35),
                 ),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Container(
-                    key: ValueKey(widget.file.path),
-                    color: Colors.black12,
-                    width: double.infinity,
-                    child: _buildContent(extension, widget.file),
-                  ),
-                ),
+                child: _buildContent(extension, widget.file),
               ),
             ),
             Padding(
@@ -338,9 +330,11 @@ class _FileCardState extends State<FileCard> {
       );
     } else if (['mp4', 'mov', 'avi', 'mkv'].contains(extension)) {
       if (_videoController != null && _isVideoInitialized) {
-        return AspectRatio(
-          aspectRatio: _videoController!.value.aspectRatio.clamp(0.1, 10.0),
-          child: VideoPlayer(_videoController!),
+        return Center(
+          child: AspectRatio(
+            aspectRatio: _videoController!.value.aspectRatio.clamp(0.1, 10.0),
+            child: VideoPlayer(_videoController!),
+          ),
         );
       }
       // Show thumbnail while loading if available
@@ -373,7 +367,7 @@ class _FileCardState extends State<FileCard> {
           ElevatedButton.icon(
             onPressed: _toggleAudio,
             icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-            label: Text(_isPlaying ? "Pause" : "Play Preview"),
+            label: const Text("Resume"),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange.withValues(alpha: 0.1),
               foregroundColor: Colors.orange,
@@ -392,18 +386,19 @@ class _FileCardState extends State<FileCard> {
         ],
       );
     } else {
-      String fileName = file.path.split('/').last;
+      String fileName = widget.file.path.split('/').last;
       String letter = fileName.isNotEmpty ? fileName[0].toUpperCase() : "?";
-      Color randomColor = Colors.primaries[Random().nextInt(Colors.primaries.length)];
+      int colorIndex = (widget.file.path.hashCode % Colors.primaries.length).abs();
+      Color stableColor = Colors.primaries[colorIndex];
       return Container(
-        color: randomColor.withValues(alpha: 0.2),
+        color: stableColor.withValues(alpha: 0.2),
         child: Center(
           child: Text(
             letter,
             style: TextStyle(
               fontSize: 100,
               fontWeight: FontWeight.bold,
-              color: randomColor,
+              color: stableColor,
             ),
           ),
         ),
@@ -467,9 +462,11 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     if (!_initialized) {
       return const Center(child: CircularProgressIndicator());
     }
-    return AspectRatio(
-      aspectRatio: _controller.value.aspectRatio,
-      child: VideoPlayer(_controller),
+    return Center(
+      child: AspectRatio(
+        aspectRatio: _controller.value.aspectRatio,
+        child: VideoPlayer(_controller),
+      ),
     );
   }
 }
