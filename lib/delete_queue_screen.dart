@@ -244,15 +244,23 @@ class DeleteQueueScreen extends StatelessWidget {
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
+                final messenger = ScaffoldMessenger.of(context);
+
+                // ✅ Variable to track if the user panicked and hit UNDO
+                bool isUndoClicked = false;
+
                 fileProvider.prepareCommitDeletion();
+
                 Navigator.pop(dialogContext);
                 Navigator.pop(context);
 
-                ScaffoldMessenger.of(context)
+                messenger.clearSnackBars();
+
+                messenger
                     .showSnackBar(
                       SnackBar(
                         content: Text(
-                          "Files permanently deleted !",
+                          "Files permanently deleted!",
                           style: GoogleFonts.lexend(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -263,12 +271,14 @@ class DeleteQueueScreen extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        duration: const Duration(seconds: 4),
+                        duration: const Duration(seconds: 2),
                         action: SnackBarAction(
                           label: "UNDO",
                           textColor: const Color(0xFFFF8A65),
                           onPressed: () {
+                            isUndoClicked = true; // ✅ Mark that they clicked it
                             fileProvider.undoCommitDeletion();
+                            messenger.hideCurrentSnackBar();
                           },
                         ),
                       ),
@@ -279,6 +289,15 @@ class DeleteQueueScreen extends StatelessWidget {
                         fileProvider.executeFinalDeletion();
                       }
                     });
+
+                // ✅ THE OVERRIDE:
+                // Force the SnackBar to close after exactly 2 seconds,
+                // completely bypassing Android's accessibility blockage.
+                Future.delayed(const Duration(seconds: 2), () {
+                  if (!isUndoClicked) {
+                    messenger.hideCurrentSnackBar();
+                  }
+                });
               },
               child: const Text("DELETE ALL"),
             ),
